@@ -9,14 +9,16 @@ chrome.runtime.onInstalled.addListener(function() {
   chrome.contextMenus.onClicked.addListener(function(info, tab) {
     if (info.menuItemId === "createAnkiCard") {
       let highlightedText = info.selectionText;
-      createAnkiCard(highlightedText);
+      chrome.storage.sync.get('deckName', function(data) {
+        const deckName = data.deckName || 'Default';
+        createAnkiCard(deckName, highlightedText);
+      });
     }
   });
   
-  async function createAnkiCard(highlightedText) {
+  async function createAnkiCard(deckName, highlightedText) {
     console.log("Creating Anki card with text: ", highlightedText);
   
-    const deckName = "OPMI";
     const modelName = "Basic"; // This is the model/template of the card, you can create your own model in Anki
     const front = highlightedText; // The text for the front of the card
     const back = "..." // The text for the back of the card, replace with whatever you want.
