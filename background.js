@@ -16,16 +16,23 @@ chrome.contextMenus.onClicked.addListener(function(info, tab) {
 async function createAnkiCard(highlightedText) {
   console.log("Creating Anki card with text: ", highlightedText);
 
-  const modelName = "Basic";
   const front = highlightedText;
   const back = "...";
 
-  // Get the selected deck from local storage
-  let selectedDeck = "OPMI"; // Default to "OPMI" if no deck is selected
+  // Get the selected deck, model, and tag from storage
+  let selectedDeck = "Default"; // Default to "Default" if no deck is selected
+  let selectedModel = "Basic"; // Default to "Basic" if no model is selected
+  let tag = "";
   try {
-    let data = await chrome.storage.sync.get(['selectedDeck']);
+    let data = await chrome.storage.sync.get(['selectedDeck', 'selectedModel', 'tag']);
     if (data.selectedDeck) {
       selectedDeck = data.selectedDeck;
+    }
+    if (data.selectedModel) {
+      selectedModel = data.selectedModel;
+    }
+    if (data.tag) {
+      tag = data.tag;
     }
   } catch (err) {
     console.error(`Error retrieving data from chrome.storage.sync: ${err}`);
@@ -37,7 +44,7 @@ async function createAnkiCard(highlightedText) {
     "params": {
       "note": {
         "deckName": selectedDeck,
-        "modelName": modelName,
+        "modelName": selectedModel,
         "fields": {
           "Front": front,
           "Back": back
@@ -45,7 +52,7 @@ async function createAnkiCard(highlightedText) {
         "options": {
           "allowDuplicate": false
         },
-        "tags": []
+        "tags": [tag]
       }
     }
   };
