@@ -15,31 +15,22 @@ chrome.runtime.onInstalled.addListener(function() {
       });
     }
   });
-  
-  async function createAnkiCard(deckName, highlightedText) {
-    console.log("Creating Anki card with text: ", highlightedText);
-  
-    const modelName = "Basic"; // This is the model/template of the card, you can create your own model in Anki
-    const front = highlightedText; // The text for the front of the card
-    const back = "..." // The text for the back of the card, replace with whatever you want.
-  
-    const payload = {
-      "action": "addNote",
-      "version": 6,
-      "params": {
-        "note": {
-          "deckName": deckName,
-          "modelName": modelName,
-          "fields": {
-            "Front": front,
-            "Back": back
-          },
-          "options": {
-            "allowDuplicate": false
-          },
-          "tags": [] // You can add any tags here
-        }
+
+  chrome.runtime.onMessage.addListener(
+    function(request, sender, sendResponse) {
+      if (request.message === "getDeckNames") {
+        getAnkiDecks().then(deckNames => {
+          sendResponse(deckNames);
+        });
+        return true;  // Will respond asynchronously.
       }
+    }
+  );
+  
+  async function getAnkiDecks() {
+    const payload = {
+      "action": "deckNames",
+      "version": 6
     };
   
     const result = await fetch('http://localhost:8765', {
@@ -52,10 +43,11 @@ chrome.runtime.onInstalled.addListener(function() {
   
     const data = await result.json();
   
-    if(data.error) {
-      console.log("Error creating Anki card: ", data.error);
+    if (data.error) {
+      console.log("Error fetching Anki decks: ", data.error);
+      return null;
     } else {
-      console.log("Anki card created successfully");
+      return data.result;
     }
   }
-  
+    
